@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Untitled</title>
+
+  <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css">
+  <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.rtl.min.css">
+  <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.default.min.css">
+  <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.mobile.all.min.css">
+
+  <script src="http://code.jquery.com/jquery-1.12.3.min.js"></script>
+  <script src="http://kendo.cdn.telerik.com/2017.1.118/js/angular.min.js"></script>
+  <script src="http://kendo.cdn.telerik.com/2017.1.118/js/jszip.min.js"></script>
+  <script src="http://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"></script>
+  <script>
+    $(function() {
+      $("#treeview").kendoTreeView({
+        dataSource: {
+          data: [{ 
+            text: "Item 1",
+            //value: 1,
+            //showCombo: false,
+            //checked: false,
+            items: [{
+              text: "Item 1.1",
+              //value: 2,
+              //showCombo: true,
+              //checked: false
+            },{
+              text: "Item 1.2",
+              //value: 3,
+              //showCombo: true,
+              //checked: true
+            }]
+          }]
+        },
+        checkboxes: true,
+        template: kendo.template($("#item-template").html())
+      });
+
+      $("#treeview")
+        .on("change", "input.k-checkbox", function() {
+        //var select = $(this).closest("div").find('input').innerHTML;
+        //var select = $(this).closest("div.k-top");
+        var select = $(this).closest("div").find(':text');
+        window.alert(select.val());
+      });
+    });
+  </script>
+</head>
+<body>
+  <div id="treeview"></div>
+  <script id="item-template" type="text/x-kendo-template">
+  
+    	#= data.item.text #
+      <input type="text" value="#= data.item.text #">
+  </script>
+</body>
+</html>

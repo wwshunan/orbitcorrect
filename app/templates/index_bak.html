@@ -1,0 +1,63 @@
+{% extends "bootstrap/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <h2>Orbit Correction</h2>
+        <div class="col-sm-4">
+            <div id="treeview" class=""></div>
+            <input type="submit" class="btn btn-info" value="Submit">
+        </div>
+        <div class="col-sm-8">
+            <div class="form-group">
+                <label for="comment">Test:</label>
+                <textarea class="form-control" id="comment"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-treeview/dist/bootstrap-treeview.min.css') }}">
+<link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css">
+<link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.rtl.min.css">
+<link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.default.min.css">
+<link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.118/styles/kendo.mobile.all.min.css">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='bootstrap-treeview/dist/bootstrap-treeview.min.js') }}"></script>
+<script src="http://kendo.cdn.telerik.com/2017.1.118/js/angular.min.js"></script>
+<script src="http://kendo.cdn.telerik.com/2017.1.118/js/jszip.min.js"></script>
+<script src="http://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"></script>
+<script>
+    $(function() {
+        var tree = {{ tree | safe}};
+        window.alert(tree);
+        var root_substrings = ['MEBT', 'CM1', 'CM2', 'CM3'];
+        $('#treeview').kendoTreeView({
+            dataSource: {
+                data: tree,
+            }
+            checkboxes: true,
+            template: kendo.template($("#item-template").html())
+
+        });
+
+        $("input").click(function() {
+            $.post("/orbit-correction", {data: _checkedNodes()}, function(result) {
+            $('textarea#comment').val(result);
+            });
+        });
+
+
+    });
+</script>
+<script id="item-template" type="text/x-kendo-template">
+    #= data.item.text #
+    <input type="text" value="#= data.item.text #">
+</script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "bootstrap/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <h2>Orbit Correction</h2>
+        <div class="col-sm-4">
+            <div id="treeview" class=""></div>
+            <input type="submit" class="btn btn-info" value="Submit">
+        </div>
+        <div class="col-sm-8">
+            <div class="form-group">
+                <label for="comment">Test:</label>
+                <textarea class="form-control" id="comment"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-treeview/dist/bootstrap-treeview.min.css') }}">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='bootstrap-treeview/dist/bootstrap-treeview.min.js') }}"></script>
+<script>
+    $(function() {
+        var tree = {{ tree | safe}};
+        var root_substrings = ['MEBT', 'CM1', 'CM2', 'CM3'];
+        $('#treeview').treeview({
+            data: tree,
+            showCheckbox: true,
+            multiSelect: true,
+            //onNodeChecked: function(e, node){
+            //    if (typeof node['nodes'] != "undefined") {
+            //        var children = node['nodes'];
+            //        for (var i=0; i<children.length; i++) {
+            //            $('#treeview').treeview('checkNode', [children[i].nodeId, { silent: true } ]);
+            //        }
+            //    }
+            //}
+
+        });
+        function _getChildren(node) {
+            if (node.nodes === undefined) return [];
+            var childrenNodes = node.nodes;
+            node.nodes.forEach(function(n) {
+                childrenNodes = childrenNodes.concat(_getChildren(n));
+            });
+            return childrenNodes;
+        }
+
+        function _getRoot(node) {
+            var parent_node = $('#treeview').treeview('getParent', node.nodeId);
+            if (new RegExp(root_substrings.join('|')).test(parent_node.text)) return parent_node;
+
+            return _getRoot(parent_node);
+        }
+            
+
+        //$('#treeview').on('nodeChecked', function(e, node){
+        //    if (typeof node['nodes'] != "undefined") {
+        //        var children = node['nodes'];
+        //        for (var i=0; i<children.length; i++) {
+        //            $('#treeview').treeview('checkNode', [children[i].nodeId, { silent: true } ]);
+        //        }
+        //    }
+        //});
+        $('#treeview').on('nodeChecked', function(e, node){
+            var children = _getChildren(node);
+            for (var i=0; i<children.length; i++) {
+                $('#treeview').treeview('checkNode', [children[i].nodeId, { silent: true } ]);
+            }
+        });
+        $('#treeview').on('nodeUnchecked', function(e, node){
+            var children = _getChildren(node);
+            for (var i=0; i<children.length; i++) {
+                $('#treeview').treeview('uncheckNode', [children[i].nodeId, { silent: true } ]);
+            }
+        });
+        
+        function _checkedNodes() {
+            var checknodes = $('#treeview').treeview('getChecked');
+            var result = {};
+            var substrings = ['DC', 'bpm'];
+            for (var i=0; i != checknodes.length; i++) {
+                node_name = checknodes[i].text;
+                if (new RegExp(substrings.join('|')).test(node_name)) {
+                    var root_node = _getRoot(checknodes[i]);
+                    if (!(root_node.text in result)) {
+                      result[root_node.text] = [];
+                    }
+                    result[root_node.text].push(node_name);
+                }
+            }
+            return JSON.stringify(result);
+        }
+
+        $("input").click(function() {
+            $.post("/orbit-correction", {data: _checkedNodes()}, function(result) {
+            $('textarea#comment').val(result);
+            });
+        });
+
+
+    });
+</script>
+{% endblock %}

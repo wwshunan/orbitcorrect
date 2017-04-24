@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Treeview</title>
+        
+        <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css" />
+        <link type="text/css" rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css" />
+    </head>
+    <body>
+        <div id="treeview-container">
+            <ul>
+                <li>Item 1</li>
+                <li>Item 2
+                    <ul>
+                        <li>Item 2.1</li>
+                        <li>Item 2.2
+                            <ul>
+                                <li data-value="2.2.1">Item 2.2.1</li>
+                                <li data-value="2.2.2">Item 2.2.2</li>
+                                <li data-value="2.2.3">Item 2.2.3</li>
+                            </ul>
+                        </li>
+                        <li>Item 2.3</li>
+                    </ul>
+                </li>
+                <li>Item 3
+                    <ul>
+                        <li data-value="3.1">Item 3.1</li>
+                        <li data-value="3.2">Item 3.2</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <button type="button" id="show-values">Get Values</button>
+        <pre id="values"></pre>
+        
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+        <script src="../dev/logger.js"></script>
+        <script src="../dev/treeview.js"></script>
+        
+        <script>
+            $('#treeview-container').treeview({
+                debug : true,
+                data : ['3.2', '2.2.3']
+            });
+            $('#show-values').on('click', function(){ 
+                $('#values').text(
+                    $('#treeview-container').treeview('selectedValues')
+                );
+            });
+        </script>
+    </body>
+</html>
