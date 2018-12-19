@@ -1,0 +1,141 @@
+{% extends "bootstrap/base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.223/styles/kendo.common-material.min.css">
+    <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.223/styles/kendo.material.min.css">
+    <link rel="stylesheet" href="http://kendo.cdn.telerik.com/2017.1.223/styles/kendo.material.mobile.min.css">
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="http://kendo.cdn.telerik.com/2017.1.223/js/kendo.all.min.js"></script>
+    <script id="item-template" type="text/kendo-ui-template">
+        #= data.item.text #
+        # var is_bpm = data.item.text.indexOf('bpm'); #
+        # if(is_bpm >= 0) { #
+        <input class="k-input" style="width:70px" type="text" value="#= data.item.value #">
+        # } #
+    </script>
+    <script>
+    $(function() {
+        var tree = {{ tree | safe}};
+        var root_substrings = ['MEBT', 'CM1', 'CM2', 'CM3'];
+        $('#treeview').kendoTreeView({
+            template: kendo.template($("#item-template").html()),
+            dataSource: {
+                data: tree,
+            },
+
+            checkboxes: {
+                checkChildren: true,
+            },
+            loadOnDemand: false,
+
+
+        });
+
+
+        $(":submit").click(function() {
+            $.ajax({
+                type: "POST",
+                url: "/orbit-correction", 
+                data: { 
+                    tree: _checkedNodes(), 
+                    c_step: $("#cryogenic_step").val(), 
+                    r_step: $("#roomtemp_step").val(),
+                    c_slope: $("#cryo_time").val(),
+                    r_time: $("#roomtemp_time").val()
+                }, 
+                beforeSend: function() {
+                    $(":submit").prop('disabled', true);
+                },
+                success: function(result) {
+                    $('#steer_strength').text(result);
+                    $(":submit").prop('disabled', false);
+                },
+            })
+        });
+
+        // function that gathers IDs of checked nodes
+        function checkedNodeIds(nodes, checkedNodes) {
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].checked) {
+                    checkedNodes.push(nodes[i]);
+                }
+
+                if (nodes[i].hasChildren) {
+                    checkedNodeIds(nodes[i].children.view(), checkedNodes);
+                }
+            }
+        };
+        
+        function _checkedNodes() {
+            var checkedNodes = [],
+                treeview = $("#treeview").data("kendoTreeView");
+            checkedNodeIds(treeview.dataSource.view(), checkedNodes);
+            var result = {};
+            var substrings = ['DC', 'bpm'];
+            for (var i=0; i != checkedNodes.length; i++) {
+                var node_text = checkedNodes[i].text;
+                if (new RegExp(substrings.join('|')).test(node_text)) {
+                    var root_node = checkedNodes[i];
+                    while (root_node.parentNode() != null) {
+                        root_node = root_node.parentNode();
+                    }
+
+                    if (!(root_node.text in result)) {
+                        result[root_node.text] = {};
+                    }
+
+                    if (node_text.indexOf('DC') >= 0) {
+                        if (!('steerers' in result[root_node.text])) {
+                            result[root_node.text]['steerers'] = [];
+                        }
+                        result[root_node.text]['steerers'].push(node_text);
+                    } else {
+                        if (!('bpms' in result[root_node.text])) {
+                            result[root_node.text]['bpms'] = [];
+                        }
+                        var bpm_set = {};
+                        bpm_set[node_text] = checkedNodes[i].value;
+                        result[root_node.text]['bpms'].push(bpm_set);
+                    }
+
+                }
+            }
+            return JSON.stringify(result);
+        }
+
+    $(document).on("change", '.k-input', function(e) {
+        var treeview = $("#treeview").data("kendoTreeView");
+        var dataItem = treeview.dataItem($(this).closest('.k-item'));
+        dataItem.value = $(this).val();
+    })
+    })
+    </script>
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <h2>Orbit Correction</h2>
+        <div class="col-sm-4">
+            <table style="border-collapse:separate; border-spacing:0px 10px">
+                {% for field in form %}
+                <tr>
+                    <td>{{ field.label }}</td><td >{{ field(id=field.name, size=12, class="form-control") }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <div id="treeview"></div>
+            <input type="submit" class="btn btn-info" value="Submit">
+        </div>
+        <div class="col-sm-8">
+            <h3>Steerers Strength:</h3>
+            <div id="steer_strength"><div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

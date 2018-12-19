@@ -19,7 +19,7 @@
         dataSource: {
           data: [{ 
             text: "Item 1",
-            //value: 1,
+            value: 1,
             //showCombo: false,
             //checked: false,
             items: [{
@@ -48,13 +48,13 @@
       });
     });
   </script>
-</head>
-<body>
-  <div id="treeview"></div>
-  <script id="item-template" type="text/x-kendo-template">
+<script id="item-template" type="text/x-kendo-template">
   
     	#= data.item.text #
       <input type="text" value="#= data.item.text #">
   </script>
+</head>
+<body>
+  <div id="treeview"></div>
 </body>
 </html>

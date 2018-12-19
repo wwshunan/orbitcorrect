@@ -1,0 +1,5 @@
+
+cd /home/linac/commissioning/orbitcorrect
+python2.7 manage.py runserver
+
+
